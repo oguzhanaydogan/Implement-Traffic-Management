@@ -1,0 +1,253 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "virtualNetworks_az104_06_vnet01_name": {
+            "defaultValue": "az104-06-vnet01",
+            "type": "String"
+        },
+        "applicationGateways_az104_06_appgw5_externalid": {
+            "defaultValue": "/subscriptions/67882e92-6412-4fc5-b9ca-1030aa09d729/resourceGroups/az104-06-rg5/providers/Microsoft.Network/applicationGateways/az104-06-appgw5",
+            "type": "String"
+        },
+        "virtualNetworks_az104_06_vnet2_externalid": {
+            "defaultValue": "/subscriptions/67882e92-6412-4fc5-b9ca-1030aa09d729/resourceGroups/az104-06-rg1/providers/Microsoft.Network/virtualNetworks/az104-06-vnet2",
+            "type": "String"
+        },
+        "virtualNetworks_az104_06_vnet3_externalid": {
+            "defaultValue": "/subscriptions/67882e92-6412-4fc5-b9ca-1030aa09d729/resourceGroups/az104-06-rg1/providers/Microsoft.Network/virtualNetworks/az104-06-vnet3",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2022-01-01",
+            "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '/Subnet0')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_az104_06_vnet01_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.60.0.0/24",
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2022-01-01",
+            "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '/Subnet1')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_az104_06_vnet01_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.60.1.0/24",
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/subnets",
+            "apiVersion": "2022-01-01",
+            "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '/subnet-appgw')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_az104_06_vnet01_name'))]"
+            ],
+            "properties": {
+                "addressPrefix": "10.60.2.0/27",
+                "applicationGatewayIPConfigurations": [
+                    {
+                        "id": "[concat(parameters('applicationGateways_az104_06_appgw5_externalid'), '/gatewayIPConfigurations/appGatewayIpConfig')]"
+                    }
+                ],
+                "serviceEndpoints": [],
+                "delegations": [],
+                "privateEndpointNetworkPolicies": "Disabled",
+                "privateLinkServiceNetworkPolicies": "Enabled"
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "2022-01-01",
+            "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '/', parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet2')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_az104_06_vnet01_name'))]"
+            ],
+            "properties": {
+                "peeringState": "Connected",
+                "peeringSyncLevel": "FullyInSync",
+                "remoteVirtualNetwork": {
+                    "id": "[parameters('virtualNetworks_az104_06_vnet2_externalid')]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": false,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false,
+                "doNotVerifyRemoteGateways": false,
+                "remoteAddressSpace": {
+                    "addressPrefixes": [
+                        "10.62.0.0/22"
+                    ]
+                },
+                "remoteVirtualNetworkAddressSpace": {
+                    "addressPrefixes": [
+                        "10.62.0.0/22"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings",
+            "apiVersion": "2022-01-01",
+            "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '/', parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet3')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks', parameters('virtualNetworks_az104_06_vnet01_name'))]"
+            ],
+            "properties": {
+                "peeringState": "Connected",
+                "peeringSyncLevel": "FullyInSync",
+                "remoteVirtualNetwork": {
+                    "id": "[parameters('virtualNetworks_az104_06_vnet3_externalid')]"
+                },
+                "allowVirtualNetworkAccess": true,
+                "allowForwardedTraffic": false,
+                "allowGatewayTransit": false,
+                "useRemoteGateways": false,
+                "doNotVerifyRemoteGateways": false,
+                "remoteAddressSpace": {
+                    "addressPrefixes": [
+                        "10.63.0.0/24"
+                    ]
+                },
+                "remoteVirtualNetworkAddressSpace": {
+                    "addressPrefixes": [
+                        "10.63.0.0/24"
+                    ]
+                }
+            }
+        },
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2022-01-01",
+            "name": "[parameters('virtualNetworks_az104_06_vnet01_name')]",
+            "location": "eastus",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_az104_06_vnet01_name'), 'Subnet0')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_az104_06_vnet01_name'), 'Subnet1')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_az104_06_vnet01_name'), 'subnet-appgw')]",
+                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings', parameters('virtualNetworks_az104_06_vnet01_name'), concat(parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet2'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings', parameters('virtualNetworks_az104_06_vnet01_name'), concat(parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet3'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "10.60.0.0/22"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "Subnet0",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_az104_06_vnet01_name'), 'Subnet0')]",
+                        "properties": {
+                            "addressPrefix": "10.60.0.0/24",
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    },
+                    {
+                        "name": "Subnet1",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_az104_06_vnet01_name'), 'Subnet1')]",
+                        "properties": {
+                            "addressPrefix": "10.60.1.0/24",
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    },
+                    {
+                        "name": "subnet-appgw",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('virtualNetworks_az104_06_vnet01_name'), 'subnet-appgw')]",
+                        "properties": {
+                            "addressPrefix": "10.60.2.0/27",
+                            "applicationGatewayIPConfigurations": [
+                                {
+                                    "id": "[concat(parameters('applicationGateways_az104_06_appgw5_externalid'), '/gatewayIPConfigurations/appGatewayIpConfig')]"
+                                }
+                            ],
+                            "serviceEndpoints": [],
+                            "delegations": [],
+                            "privateEndpointNetworkPolicies": "Disabled",
+                            "privateLinkServiceNetworkPolicies": "Enabled"
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/subnets"
+                    }
+                ],
+                "virtualNetworkPeerings": [
+                    {
+                        "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet2')]",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings', parameters('virtualNetworks_az104_06_vnet01_name'), concat(parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet2'))]",
+                        "properties": {
+                            "peeringState": "Connected",
+                            "peeringSyncLevel": "FullyInSync",
+                            "remoteVirtualNetwork": {
+                                "id": "[parameters('virtualNetworks_az104_06_vnet2_externalid')]"
+                            },
+                            "allowVirtualNetworkAccess": true,
+                            "allowForwardedTraffic": false,
+                            "allowGatewayTransit": false,
+                            "useRemoteGateways": false,
+                            "doNotVerifyRemoteGateways": false,
+                            "remoteAddressSpace": {
+                                "addressPrefixes": [
+                                    "10.62.0.0/22"
+                                ]
+                            },
+                            "remoteVirtualNetworkAddressSpace": {
+                                "addressPrefixes": [
+                                    "10.62.0.0/22"
+                                ]
+                            }
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings"
+                    },
+                    {
+                        "name": "[concat(parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet3')]",
+                        "id": "[resourceId('Microsoft.Network/virtualNetworks/virtualNetworkPeerings', parameters('virtualNetworks_az104_06_vnet01_name'), concat(parameters('virtualNetworks_az104_06_vnet01_name'), '-vnet3'))]",
+                        "properties": {
+                            "peeringState": "Connected",
+                            "peeringSyncLevel": "FullyInSync",
+                            "remoteVirtualNetwork": {
+                                "id": "[parameters('virtualNetworks_az104_06_vnet3_externalid')]"
+                            },
+                            "allowVirtualNetworkAccess": true,
+                            "allowForwardedTraffic": false,
+                            "allowGatewayTransit": false,
+                            "useRemoteGateways": false,
+                            "doNotVerifyRemoteGateways": false,
+                            "remoteAddressSpace": {
+                                "addressPrefixes": [
+                                    "10.63.0.0/24"
+                                ]
+                            },
+                            "remoteVirtualNetworkAddressSpace": {
+                                "addressPrefixes": [
+                                    "10.63.0.0/24"
+                                ]
+                            }
+                        },
+                        "type": "Microsoft.Network/virtualNetworks/virtualNetworkPeerings"
+                    }
+                ],
+                "enableDdosProtection": false
+            }
+        }
+    ]
+}
